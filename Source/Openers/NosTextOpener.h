@@ -9,15 +9,17 @@
 #include <QObject>
 
 class NosTextOpener : public QObject, public INosFileOpener {
-    Q_OBJECT
-    private:
-    NosTextDatFileDecryptor datDecryptor;
-    NosTextOthersFileDecryptor lstDecryptor;
-
-    public:
+Q_OBJECT
+public:
     NosTextOpener();
-    virtual OnexTreeItem *decrypt(QFile &file);
-    virtual QByteArray encrypt(OnexTreeItem *item);
+    OnexTreeItem *decrypt(QFile &file);
+    QByteArray encrypt(OnexTreeItem *item);
+    OnexTreeItem *getEmptyItem(const QByteArray &header) override;
+private:
+    NosTextDatFileDecryptor *datDecryptor;
+    NosTextOthersFileDecryptor *lstDecryptor;
+    QByteArray generateOLETIME();
+    QString readOLETIME(QByteArray array);
 };
 
 #endif // NOSTEXTOPENER_H

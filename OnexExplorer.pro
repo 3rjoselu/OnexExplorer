@@ -25,7 +25,7 @@ SOURCES += \
     Source/main.cpp \
     Source/MainWindow.cpp \
     Source/Converters/ImageConverter.cpp \
-    Source/Converters/IModelConverter.cpp \
+    Source/Converters/LittleEndianConverter.cpp \
     Source/Converters/NosModelConverter.cpp \
     Source/Converters/ObjConverter.cpp \
     Source/Decryptors/NosTextDatFileDecryptor.cpp \
@@ -35,8 +35,10 @@ SOURCES += \
     Source/Openers/NosCCInfOpener.cpp \
     Source/Openers/NosTextOpener.cpp \
     Source/Openers/INosFileOpener.cpp \
+    Source/Openers/JsonConfigOpener.cpp \
     Source/Ui/OnexTreeItem.cpp \
     Source/Ui/FileInfo.cpp \
+    Source/Ui/Settings.cpp \
     Source/Ui/Previews/SingleTextFilePreview.cpp \
     Source/Ui/Previews/SingleImagePreview.cpp \
     Source/Ui/Previews/MultiImagePreview.cpp \
@@ -51,7 +53,9 @@ SOURCES += \
     Source/Ui/TreeItems/OnexNStpMipMap.cpp \
     Source/Ui/TreeItems/OnexNSmpData.cpp \
     Source/Ui/TreeItems/OnexNSmpFrame.cpp \
-    Source/Ui/TreeItems/OnexNStgData.cpp
+    Source/Ui/TreeItems/OnexNStgData.cpp \
+    Source/Ui/TreeItems/OnexNSmnData.cpp \
+    Source/Ui/TreeItems/OnexNSmcData.cpp
 
 
 
@@ -59,6 +63,7 @@ HEADERS  += \
     Source/MainWindow.h \
     Source/NosEnumTypes.h \
     Source/Converters/ImageConverter.h \
+    Source/Converters/LittleEndianConverter.h \
     Source/Converters/IModelConverter.h \
     Source/Converters/NosModelConverter.h \
     Source/Converters/ObjConverter.h \
@@ -69,8 +74,10 @@ HEADERS  += \
     Source/Openers/NosCCInfOpener.h \
     Source/Openers/NosTextOpener.h \
     Source/Openers/INosFileOpener.h \
+    Source/Openers/JsonConfigOpener.h \
     Source/Ui/OnexTreeItem.h \
     Source/Ui/FileInfo.h \
+    Source/Ui/settings.h \
     Source/Ui/Previews/SingleTextFilePreview.h \
     Source/Ui/Previews/SingleImagePreview.h \
     Source/Ui/Previews/MultiImagePreview.h \
@@ -85,13 +92,16 @@ HEADERS  += \
     Source/Ui/TreeItems/OnexNStpMipMap.h \
     Source/Ui/TreeItems/OnexNSmpData.h \
     Source/Ui/TreeItems/OnexNSmpFrame.h \
-    Source/Ui/TreeItems/OnexNStgData.h
+    Source/Ui/TreeItems/OnexNStgData.h \
+    Source/Ui/TreeItems/OnexNSmnData.h \
+    Source/Ui/TreeItems/OnexNSmcData.h
 
 FORMS    += \
     Source/mainwindow.ui \
     Source/Ui/Previews/SingleTextFilePreview.ui \
     Source/Ui/Previews/SingleImagePreview.ui \
     Source/Ui/Previews/MultiImagePreview.ui \
+    Source/Ui/Settings.ui
 
 DISTFILES +=
 

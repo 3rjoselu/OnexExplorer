@@ -1,33 +1,35 @@
 #ifndef ONEXTREETEXT_H
 #define ONEXTREETEXT_H
+
 #include "../OnexTreeItem.h"
 
 class NosTextOpener;
+
 class OnexTreeText : public OnexTreeItem {
-    Q_OBJECT
-private:
-    int fileNumber;
-    int isDat;
-    FileInfo *generateInfos() override;
-
+Q_OBJECT
 public:
-    OnexTreeText(QString name, NosTextOpener *opener, int fileNumber = 0, int isDat = 0,
+    OnexTreeText(const QString &name, NosTextOpener *opener, int fileNumber = 0, int isCompressed = 0,
                  QByteArray content = QByteArray());
-    virtual QWidget *getPreview() override;
-    virtual FileInfo *getInfos() override;
-    virtual ~OnexTreeText();
+    OnexTreeText(const QString &name, NosTextOpener *opener, const QString &time);
+    OnexTreeText(QJsonObject jo, NosTextOpener *opener, const QString &directory);
+    ~OnexTreeText() override;
+    QWidget *getPreview() override;
+    QString getExportExtension() override;
     int getFileNumber() const;
-    int getIsDat() const;
-
+    int getIsCompressed() const;
 public slots:
-    virtual int onExport(QString directory);
-    virtual int onReplace(QString directory);
+    int afterReplace(QByteArray content) override;
     void setFileNumber(int number, bool update = false);
-    void setIsDat(bool isDat, bool update = false);
-    virtual QString getExportExtension();
-
+    void setIsCompressed(bool isCompressed, bool update = false);
+    void setTime(QString time, bool update = false);
 signals:
     void replaceSignal(QByteArray text);
+protected:
+    int fileNumber;
+    int isCompressed;
+    QString time;
+    FileInfo *generateInfos() override;
+    QString getEncoding();
 };
 
 #endif // ONEXTREETEXT_H

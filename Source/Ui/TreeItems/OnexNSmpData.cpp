@@ -2,39 +2,51 @@
 #include "../Previews/MultiImagePreview.h"
 #include "OnexNSmpFrame.h"
 
-OnexNSmpData::OnexNSmpData(QByteArray header, QString name, QByteArray content, NosZlibOpener *opener, int id,
-                           int creationDate, bool compressed)
-    : OnexTreeZlibItem(header, name, content, opener, id, creationDate, compressed) {
+OnexNSmpData::OnexNSmpData(const QString &name, QByteArray content, NosZlibOpener *opener,
+                           int id, int creationDate, bool compressed)
+        : OnexTreeZlibItem(name, opener, content, id, creationDate, compressed) {
+    if (content.isEmpty())
+        this->content = QByteArray(0x0);
     if (id == -1)
         return;
     int amount = content.at(0);
     for (int i = 0; i < amount; i++) {
-        int width = fromLittleEndianToShort(content.mid(1 + i * 12, 2));
-        int height = fromLittleEndianToShort(content.mid(3 + i * 12, 2));
-        int xOrigin = fromLittleEndianToShort(content.mid(5 + i * 12, 2));
-        int yOrigin = fromLittleEndianToShort(content.mid(7 + i * 12, 2));
-        int offset = fromLittleEndianToInt(content.mid(9 + i * 12, 4));
-
+        int width = opener->getLittleEndianConverter()->fromShort(content.mid(1 + i * 12, 2));
+        int height = opener->getLittleEndianConverter()->fromShort(content.mid(3 + i * 12, 2));
+        int xOrigin = opener->getLittleEndianConverter()->fromShort(content.mid(5 + i * 12, 2));
+        int yOrigin = opener->getLittleEndianConverter()->fromShort(content.mid(7 + i * 12, 2));
+        int offset = opener->getLittleEndianConverter()->fromInt(content.mid(9 + i * 12, 4));
         QByteArray subContent = content.mid(offset, (width * 2 * height));
-        this->addChild(new OnexNSmpFrame(header, name + "_" + QString::number(i), subContent, width, height, xOrigin,
-                                         yOrigin, opener, id, creationDate, compressed));
+        addFrame(subContent, width, height, xOrigin, yOrigin);
     }
 }
+
+OnexNSmpData::OnexNSmpData(QJsonObject jo, NosZlibOpener *opener, const QString &directory) : OnexTreeZlibItem(jo["ID"].toString(), opener) {
+    this->content = QByteArrayLiteral("\x00");
+    setId(jo["ID"].toInt(), true);
+    setCreationDate(jo["Date"].toString(), true);
+    setCompressed(jo["isCompressed"].toBool(), true);
+
+    QJsonArray contentArray = jo["content"].toArray();
+
+    for (auto &&i : contentArray) {
+        QJsonObject frameJo = i.toObject();
+        this->addChild(new OnexNSmpFrame(name + "_" + QString::number(this->childCount()), frameJo, opener, directory));
+    }
+}
+
+OnexNSmpData::~OnexNSmpData() = default;
 
 QWidget *OnexNSmpData::getPreview() {
     if (!hasParent())
         return nullptr;
-
-    QList<QImage> *images = new QList<QImage>();
+    auto *images = new QList<QImage>();
     for (int i = 0; i != this->childCount(); ++i) {
-        OnexNSmpFrame *item = static_cast<OnexNSmpFrame *>(this->child(i));
+        auto *item = dynamic_cast<OnexNSmpFrame *>(this->child(i));
         images->append(item->getImage());
     }
-
-    MultiImagePreview *imagePreview = new MultiImagePreview(images);
-
-    connect(this, SIGNAL(replaceSignal(QList<QImage> *)), imagePreview, SLOT(onReplaced(QList<QImage> *)));
-
+    auto *imagePreview = new MultiImagePreview(images);
+    connect(this, SIGNAL(replaceSignal(QList<QImage> * )), imagePreview, SLOT(onReplaced(QList<QImage> * )));
     return imagePreview;
 }
 
@@ -42,55 +54,50 @@ QByteArray OnexNSmpData::getContent() {
     int amount = childCount();
     if (!hasParent() || amount <= 0)
         return content;
-
     QByteArray offsetArray;
-    offsetArray.push_back((uint8_t)amount);
+    offsetArray.push_back((uint8_t) amount);
     int sizeOfOffsetArray = 1 + amount * 12;
-
     QByteArray contentArray;
-
     for (int i = 0; i < amount; i++) {
         int currentFileOffset = sizeOfOffsetArray + contentArray.size();
-        OnexNSmpFrame *currentItem = static_cast<OnexNSmpFrame *>(this->child(i));
-        offsetArray.push_back(fromShortToLittleEndian(currentItem->getWidth()));
-        offsetArray.push_back(fromShortToLittleEndian(currentItem->getHeight()));
-        offsetArray.push_back(fromShortToLittleEndian(currentItem->getXOrigin()));
-        offsetArray.push_back(fromShortToLittleEndian(currentItem->getYOrigin()));
-        offsetArray.push_back(fromIntToLittleEndian(currentFileOffset));
+        auto *currentItem = dynamic_cast<OnexNSmpFrame *>(this->child(i));
+        offsetArray.push_back(opener->getLittleEndianConverter()->toShort(currentItem->getWidth()));
+        offsetArray.push_back(opener->getLittleEndianConverter()->toShort(currentItem->getHeight()));
+        offsetArray.push_back(opener->getLittleEndianConverter()->toShort(currentItem->getXOrigin()));
+        offsetArray.push_back(opener->getLittleEndianConverter()->toShort(currentItem->getYOrigin()));
+        offsetArray.push_back(opener->getLittleEndianConverter()->toInt(currentFileOffset));
         contentArray.push_back(currentItem->getContent());
     }
-
     this->content = QByteArray();
     content.push_back(offsetArray);
     content.push_back(contentArray);
-
     return content;
 }
 
-int OnexNSmpData::onExport(QString directory) {
-    int count = 0;
-    for (int i = 0; i != this->childCount(); ++i) {
-        OnexTreeItem *item = static_cast<OnexTreeItem *>(this->child(i));
-        count += item->onExport(directory);
+void OnexNSmpData::setName(QString name) {
+    OnexTreeZlibItem::setName(name);
+    QList<QTreeWidgetItem *> childList = takeChildren();
+    for (int i = 0; i < childList.size(); i++) {
+        auto *item = static_cast<OnexNSmpFrame *>(childList.at(i));
+        item->OnexTreeItem::setName(name + "_" + QString::number(i));
     }
-    return count;
+    addChildren(childList);
 }
 
-int OnexNSmpData::onReplace(QString directory) {
-    int count = 0;
+int OnexNSmpData::afterReplace(QByteArray content) {
+    auto *images = new QList<QImage>();
     for (int i = 0; i != this->childCount(); ++i) {
-        OnexTreeItem *item = static_cast<OnexTreeItem *>(this->child(i));
-        count += item->onReplace(directory);
-    }
-
-    QList<QImage> *images = new QList<QImage>();
-    for (int i = 0; i != this->childCount(); ++i) {
-        OnexNSmpFrame *item = static_cast<OnexNSmpFrame *>(this->child(i));
+        auto *item = dynamic_cast<OnexNSmpFrame *>(this->child(i));
         images->append(item->getImage());
     }
     emit replaceSignal(images);
-    return count;
+    emit replaceInfo(generateInfos());
+    return 1;
 }
 
-OnexNSmpData::~OnexNSmpData() {
+OnexTreeItem *OnexNSmpData::addFrame(QByteArray content, short width, short height, short xOrigin, short yOrigin) {
+    OnexTreeItem *frame = new OnexNSmpFrame(name + "_" + QString::number(this->childCount()), content, width, height, xOrigin, yOrigin,
+                                            (NosZlibOpener *) opener, id, creationDate, compressed);
+    this->addChild(frame);
+    return frame;
 }

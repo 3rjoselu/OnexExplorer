@@ -1,86 +1,89 @@
 #include "OnexTreeItem.h"
 
-OnexTreeItem::OnexTreeItem(QString name, INosFileOpener *opener, QByteArray content)
-    : name(name), opener(opener), content(content) {
+OnexTreeItem::OnexTreeItem(const QString &name, INosFileOpener *opener, QByteArray content)
+        : name(name), opener(opener), content(content) {
     this->setText(0, name);
+    this->setFlags(this->flags() | Qt::ItemIsEditable);
 }
 
-QByteArray OnexTreeItem::getContent() {
-    return content;
+OnexTreeItem::~OnexTreeItem() = default;
+
+QWidget *OnexTreeItem::getPreview() {
+    return nullptr;
+}
+
+FileInfo *OnexTreeItem::getInfos() {
+    FileInfo *infos = generateInfos();
+    if (infos != nullptr)
+        connect(this, SIGNAL(replaceInfo(FileInfo * )), infos, SLOT(replace(FileInfo * )));
+    return infos;
 }
 
 bool OnexTreeItem::hasParent() {
-    return QTreeWidgetItem::parent();
-}
-
-short OnexTreeItem::fromLittleEndianToShort(QByteArray array) {
-    return qFromLittleEndian<qint16>(reinterpret_cast<const uchar *>(array.data()));
-}
-
-int OnexTreeItem::fromLittleEndianToInt(QByteArray array) {
-    return qFromLittleEndian<qint32>(reinterpret_cast<const uchar *>(array.data()));
-}
-
-float OnexTreeItem::fromLittleEndianToFloat(QByteArray array) {
-    return qFromLittleEndian<float>(reinterpret_cast<const uchar *>(array.data()));
-}
-
-QByteArray OnexTreeItem::fromShortToLittleEndian(short number) {
-    QByteArray writeArray;
-    writeArray.resize(2);
-    qToLittleEndian<qint16>(number, reinterpret_cast<uchar *>(writeArray.data()));
-    return writeArray;
-}
-
-QByteArray OnexTreeItem::fromIntToLittleEndian(int number) {
-    QByteArray writeArray;
-    writeArray.resize(4);
-    qToLittleEndian<qint32>(number, reinterpret_cast<uchar *>(writeArray.data()));
-    return writeArray;
-}
-
-QByteArray OnexTreeItem::fromFloatToLittleEndian(float number) {
-    QByteArray writeArray;
-    writeArray.resize(4);
-    qToLittleEndian<float>(number, reinterpret_cast<uchar *>(writeArray.data()));
-    return writeArray;
-}
-
-int OnexTreeItem::getContentSize() {
-    return content.size();
+    return QTreeWidgetItem::parent() != nullptr;
 }
 
 QString OnexTreeItem::getName() {
     return name;
 }
 
-void OnexTreeItem::setName(QString name) {
-    this->name = name;
+QByteArray OnexTreeItem::getContent() {
+    return content;
 }
 
-void OnexTreeItem::setContent(QByteArray content) {
-    this->content = content;
+int OnexTreeItem::getContentSize() {
+    return content.size();
+}
+
+bool OnexTreeItem::isEmpty() {
+    return getContent().isEmpty();
 }
 
 QString OnexTreeItem::getExportExtension() {
     return "";
 }
 
-OnexTreeItem::~OnexTreeItem() {
+QString OnexTreeItem::getExportExtensionFilter() {
+    if (getExportExtension() == ".png")
+        return "PNG Image (*.png)";
+    else if (getExportExtension() == ".txt")
+        return "Text File (*.txt)";
+    else if (getExportExtension() == ".lst")
+        return "List File (*.lst)";
+    else if (getExportExtension() == ".dat")
+        return "DAT File (*.dat)";
+    else if (getExportExtension() == ".obj")
+        return "OBJ File (*.obj)";
+    else if (getExportExtension() == ".json")
+        return "JSON File (*.json)";
+    return "All files (*.*)";
+}
+
+void OnexTreeItem::setName(QString name) {
+    this->name = name;
+    setText(0, name);
+}
+
+void OnexTreeItem::setContent(QByteArray content) {
+    this->content = content;
 }
 
 int OnexTreeItem::onExport(QString directory) {
-    QMessageBox::warning(NULL, tr("Not yet"), tr("This isn't implemented yet"));
-    return 0;
+    if (childCount() > 0) {
+        int count = 0;
+        for (int i = 0; i != this->childCount(); ++i) {
+            auto *item = dynamic_cast<OnexTreeItem *>(this->child(i));
+            count += item->onExport(directory);
+        }
+        return count;
+    } else {
+        QString path = getCorrectPath(directory);
+        return saveAsFile(path);
+    }
 }
 
 int OnexTreeItem::onExportRaw(QString directory) {
-    QString path = "";
-    if (!directory.endsWith(".bin"))
-        path = directory + this->getName() + ".bin";
-    else
-        path = directory;
-
+    QString path = getCorrectPath(directory, ".bin");
     QFile file(path);
     file.open(QIODevice::WriteOnly);
     if (file.write(this->getContent()) == -1) {
@@ -93,60 +96,47 @@ int OnexTreeItem::onExportRaw(QString directory) {
 int OnexTreeItem::onExportAsOriginal(QString path) {
     if (path.isEmpty())
         return 0;
-
     if (!path.endsWith(".NOS"))
         path += ".NOS";
-
     QFile file(path);
     if (!file.open(QIODevice::WriteOnly)) {
-        QMessageBox::critical(NULL, "Woops", "Couldn't open this file for writing");
+        QMessageBox::critical(nullptr, "Woops", "Couldn't open this file for writing");
         return 0;
     }
-
     if (file.write(opener->encrypt(this)) == -1) {
-        QMessageBox::critical(NULL, "Woops", "Couldn't write to this file");
+        QMessageBox::critical(nullptr, "Woops", "Couldn't write to this file");
         return 0;
     }
-
     file.close();
-    QMessageBox::information(NULL, "Yeah", "File exported into .NOS");
-
+    QMessageBox::information(nullptr, "Yeah", "File exported into .NOS");
     return 1;
 }
 
 int OnexTreeItem::onReplace(QString directory) {
+    int count = 0;
     if (this->childCount() > 0) {
-        int count = 0;
         for (int i = 0; i < this->childCount(); i++) {
-            OnexTreeItem *item = static_cast<OnexTreeItem *>(this->child(i));
+            auto *item = dynamic_cast<OnexTreeItem *>(this->child(i));
             count += item->onReplace(directory);
         }
+        if (hasParent())
+            afterReplace(QByteArray());
+    }
+    if (count > 0)
         return count;
-    } else {
-        QString path;
-        if (directory.split(".").size() == 0)
-            path = directory + this->getName();
-        else
-            path = directory;
-        QFile file(path);
-        if (file.open(QIODevice::ReadOnly))
-            this->content = file.readAll();
-        else {
-            QMessageBox::critical(NULL, "Woops", "Couldn't open " + path);
-            return 0;
-        }
-        return 1;
+    QString path = getCorrectPath(directory);
+    QFile file(path);
+    if (file.open(QIODevice::ReadOnly))
+        return afterReplace(file.readAll());
+    else {
+        QMessageBox::critical(nullptr, "Woops", "Couldn't open " + path);
+        return 0;
     }
 }
 
 int OnexTreeItem::onReplaceRaw(QString directory) {
-    QString path;
-    if (!directory.endsWith(".bin"))
-        path = directory + this->getName() + ".bin";
-    else
-        path = directory;
+    QString path = getCorrectPath(directory, ".bin");
     QFile file(path);
-
     if (file.open(QIODevice::ReadOnly)) {
         content = file.readAll();
         file.close();
@@ -155,13 +145,84 @@ int OnexTreeItem::onReplaceRaw(QString directory) {
     return 0;
 }
 
-void OnexTreeItem::onDelete() {
-    delete this;
+int OnexTreeItem::afterReplace(QByteArray content) {
+    emit replaceInfo(generateInfos());
+    return 1;
 }
 
-void OnexTreeItem::actionClose() {
-    QList<QTreeWidgetItem *> selectedItems = this->treeWidget()->selectedItems();
+QJsonObject OnexTreeItem::generateConfig() {
+    QJsonObject jo = generateInfos()->toJson();
 
-    foreach (auto &item, selectedItems)
-        delete item;
+    if (childCount() > 0) {
+        QJsonArray contentArray;
+        for (int i = 0; i < childCount(); i++) {
+            auto item = static_cast<OnexTreeItem *>(child(i));
+            contentArray.append(item->generateConfig());
+        }
+        jo["content"] = contentArray;
+    } else {
+        QString path = this->getName();
+        if (!path.endsWith(getExportExtension()))
+            path += getExportExtension();
+        jo["path"] = path;
+    }
+    return jo;
+}
+
+QString OnexTreeItem::getCorrectPath(QString input, QString extension) {
+    if (extension.isEmpty())
+        extension = getExportExtension();
+
+    if (!input.endsWith(extension)) {
+        input = input + this->getName();
+        if (!input.endsWith(extension))
+            input += extension;
+    }
+    return input;
+}
+
+FileInfo *OnexTreeItem::generateInfos() {
+    FileInfo *infos = new FileInfo();
+
+    if (hasParent() && isEmpty()) {
+        infos->addReplaceButton("Load from File");
+        infos->addReplaceRawButton("Load from raw File");
+    } else if (hasParent()) {
+        infos->addReplaceButton("Replace");
+        infos->addReplaceRawButton("Replace with raw");
+    }
+    if (!hasParent()) {
+        infos->addStringLineEdit("Archive", text(0))->setEnabled(false);
+    }
+
+    connect(this, SIGNAL(changeSignal(QString, QString)), infos, SLOT(update(QString, QString)));
+    connect(this, SIGNAL(changeSignal(QString, int)), infos, SLOT(update(QString, int)));
+    connect(this, SIGNAL(changeSignal(QString, float)), infos, SLOT(update(QString, float)));
+    connect(this, SIGNAL(changeSignal(QString, bool)), infos, SLOT(update(QString, bool)));
+    return infos;
+}
+
+int OnexTreeItem::saveAsFile(const QString &path, QByteArray content) {
+    QFile file(path);
+    if (file.open(QIODevice::WriteOnly)) {
+        file.write(content.isEmpty() ? getContent() : content);
+        file.close();
+        return 1;
+    }
+    return 0;
+}
+
+bool OnexTreeItem::operator<(const QTreeWidgetItem &other) const {
+    int column = treeWidget()->sortColumn();
+    static QRegExp regExp("^(\\d*)_(\\d*)x(\\d*)$");
+
+    bool t1IsInt;
+    bool t2IsInt;
+    int t1 = text(column).toInt(&t1IsInt);
+    int t2 = other.text(column).toInt(&t2IsInt);
+    if (t1IsInt && t2IsInt || regExp.exactMatch(text(column)))
+        return t1 < t2;
+    else
+        return false;
+//        return text(column).toLower() < other.text(column).toLower();
 }

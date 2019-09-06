@@ -1,81 +1,56 @@
 #include "OnexNS4BbData.h"
 
-OnexNS4BbData::OnexNS4BbData(QByteArray header, QString name, QByteArray content, NosZlibOpener *opener, int id,
+OnexNS4BbData::OnexNS4BbData(QString name, QByteArray content, NosZlibOpener *opener, int id,
                              int creationDate, bool compressed)
-    : OnexTreeImage(header, name, content, opener, id, creationDate, compressed) {
+        : OnexTreeImage(name, opener, content, id, creationDate, compressed) {
+    if (content.isEmpty())
+        this->content = QByteArrayLiteral("\x00\x00\x00\x00");
 }
+
+OnexNS4BbData::OnexNS4BbData(QJsonObject jo, NosZlibOpener *opener, const QString &directory) : OnexTreeImage(jo["ID"].toString(), opener) {
+    this->content = QByteArrayLiteral("\x00\x00\x00\x00");
+    setId(jo["ID"].toInt(), true);
+    setCreationDate(jo["Date"].toString(), true);
+    setCompressed(jo["isCompressed"].toBool(), true);
+    onReplace(directory + jo["path"].toString());
+}
+
+OnexNS4BbData::~OnexNS4BbData() = default;
 
 QImage OnexNS4BbData::getImage() {
     ImageResolution resolution = this->getResolution();
-    return imageConverter.convertBGRA8888_INTERLACED(content, resolution.x, resolution.y, 4);
+    return imageConverter->convertBGRA8888_INTERLACED(content, resolution.x, resolution.y, 4);
 }
 
 ImageResolution OnexNS4BbData::getResolution() {
-    int x = fromLittleEndianToShort(content.mid(0, 2));
-    int y = fromLittleEndianToShort(content.mid(2, 2));
-
+    int x = opener->getLittleEndianConverter()->fromShort(content.mid(0, 2));
+    int y = opener->getLittleEndianConverter()->fromShort(content.mid(2, 2));
     return ImageResolution{x, y};
 }
 
-int OnexNS4BbData::onReplace(QString directory) {
-    if (this->childCount() > 0) {
-        int count = 0;
-        for (int i = 0; i < this->childCount(); i++) {
-            OnexNS4BbData *item = static_cast<OnexNS4BbData *>(this->child(i));
-            count += item->onReplace(directory);
-        }
-        return count;
-    } else {
-        QString path;
-        if (!directory.endsWith(".png"))
-            path = directory + this->getName() + ".png";
-        else
-            path = directory;
+int OnexNS4BbData::afterReplace(QImage image) {
+    QByteArray newContent;
+    newContent.push_back(opener->getLittleEndianConverter()->toShort(image.width()));
+    newContent.push_back(opener->getLittleEndianConverter()->toShort(image.height()));
+    newContent.push_back(imageConverter->toBGRA8888_INTERLACED(image));
+    setContent(newContent);
+    setWidth(image.width(), true);
+    setHeight(image.height(), true);
 
-        if (!QFile(path).exists()) {
-            QMessageBox::critical(NULL, "Woops", "Missing " + path);
-            return 0;
-        }
-
-        QImage image = importQImageFromSelectedUserFile(path);
-        if (image.isNull() && this->getResolution().x != 0 && this->getResolution().y != 0) {
-            QMessageBox::critical(NULL, "Woops", "Couldn't read image " + path);
-            return 0;
-        }
-
-        if (!hasGoodResolution(image.width(), image.height())) {
-            QMessageBox::StandardButton reply = QMessageBox::question(
-                0, "Resolution changed",
-                "The resolution of the image " + name + " doesn't match!\nDo you want to replace it anyway?");
-            if (reply == QMessageBox::No)
-                return 0;
-        }
-
-        QByteArray newContent;
-        newContent.push_back(fromShortToLittleEndian(image.width()));
-        newContent.push_back(fromShortToLittleEndian(image.height()));
-        newContent.push_back(imageConverter.toBGRA8888_INTERLACED(image));
-
-        content = newContent;
-        setWidth(image.width(), true);
-        setHeight(image.height(), true);
-
-        emit OnexTreeImage::replaceSignal(this->getImage());
-
-        return 1;
-    }
+    emit OnexTreeImage::replaceSignal(this->getImage());
+    emit replaceInfo(generateInfos());
+    return 1;
 }
 
 void OnexNS4BbData::setWidth(int width, bool update) {
-    content.replace(0, 2, fromShortToLittleEndian(width));
+    content.replace(0, 2, opener->getLittleEndianConverter()->toShort(width));
     if (update)
-        emit changeSignal("Width", width);
-}
-void OnexNS4BbData::setHeight(int height, bool update) {
-    content.replace(2, 2, fromShortToLittleEndian(height));
-    if (update)
-        emit changeSignal("Height", height);
+            emit changeSignal("Width", width);
 }
 
-OnexNS4BbData::~OnexNS4BbData() {
+void OnexNS4BbData::setHeight(int height, bool update) {
+    content.replace(2, 2, opener->getLittleEndianConverter()->toShort(height));
+    if (update)
+            emit changeSignal("Height", height);
 }
+
