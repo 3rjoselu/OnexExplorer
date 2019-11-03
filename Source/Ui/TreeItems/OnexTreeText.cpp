@@ -99,8 +99,11 @@ QString OnexTreeText::getEncoding() {
         return "Windows-1250";
     else if (region == "ru")
         return "Windows-1251";
-    else if (region == "en" || region == "fr" || region == "es")
+    else if (region == "uk" || region == "fr" || region == "es")
         return "Windows-1252";
     else if (region == "tr")
         return "Windows-1254";
+    else if (region == "hk" || region == "tw")
+        return "Big5";
+    return "Windows-1250";
 }
