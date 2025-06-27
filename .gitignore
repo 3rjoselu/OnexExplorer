@@ -56,3 +56,5 @@ OnexExplorer
 freeglut/*
 
 *.xmi
+
+build/
