@@ -1,39 +1,50 @@
-# OnexExplorer #
+# OnexExplorer
 
-OnexExplorer is an open-source tool for unpacking and repacking .NOS data files from game called NosTale. It can open almost all .NOS files and allows to view the Content, export and replace it and even add own Content to them. Our software works on Qt 5.5+ with OpenGl.
+OnexExplorer es una herramienta de c\u00f3digo abierto para desempaquetar y volver a empaquetar archivos `.NOS` del juego NosTale. Permite abrir la mayor\u00eda de estos archivos, ver su contenido y exportarlo o reemplazarlo seg\u00fan sea necesario.
 
-Client Modding Discord:  [<img src="https://discordapp.com/api/guilds/590958760374042657/widget.png?style=shield">](https://discord.gg/t73Ayca)
+## Estructura del proyecto
 
+- **Source/Converters**: conversores para modelos, im\u00e1genes y datos.
+- **Source/Decryptors**: l\u00f3gica de descompresi\u00f3n y desencriptado.
+- **Source/Openers**: clases encargadas de abrir archivos `.NOS` y leer configuraciones.
+- **Source/Ui**: componentes de la interfaz gr\u00e1fica y previsualizadores.
+- **resources.qrc** y **OnexExplorer.pro** definen recursos y configuraci\u00f3n de compilaci\u00f3n.
+- El directorio **build** contiene ejemplos de proyectos generados con distintas versiones de Qt.
 
-## Currently supported archives ##
+## Que puede hacer OnexExplorer
 
-- NSgtdData (Items, quests, skills, mobs etc. data)
-- NSlangData (_code_lang_list (ztsXXXe))
+- Navegar y visualizar la mayor\u00eda de archivos `.NOS`.
+- Previsualizar textos, im\u00e1genes y modelos 3D.
+- Extraer archivos o carpetas completas.
+- Reemplazar contenido existente y a\u00f1adir nuevos recursos.
+
+## Archivos soportados actualmente
+
+- NSgtdData (datos de objetos, misiones, habilidades y monstruos)
+- NSlangData (_code_lang_list - ztsXXXe)
 - NScliData (constring.dat)
-- NSetcData (Word list for Memory & TabooStr.lst)
-- NS4BbData (Big images)
-- NSipData (Icons)
-- NStpData (Map and model textures)
-- NStpeData (Effect textures)
-- NStpuData (UI textures)
-- NStcData (Map Grids)
-- NSmpData (Monster-related sprites)
-- NSppData (Player-related sprites)
-- NSmnData (Mob-related sprite infos)
-- NSpnData (Player-related sprite infos)
-- NSmcData (Monster-related animation kits)
-- NSpcData (Player-related animation kits)
-- NStgData (3D Models)
-- NStgeData (3D VFX models)
+- NSetcData (listas de palabras)
+- NS4BbData (im\u00e1genes grandes)
+- NSipData (iconos)
+- NStpData (texturas de mapas y modelos)
+- NStpeData (texturas de efectos)
+- NStpuData (texturas de la interfaz)
+- NStcData (cuadr\u00edculas de mapas)
+- NSmpData (sprites de monstruos)
+- NSppData (sprites de jugador)
+- NSmnData (informaci\u00f3n de sprites de monstruos)
+- NSpnData (informaci\u00f3n de sprites de jugador)
+- NSmcData (kits de animaci\u00f3n de monstruos)
+- NSpcData (kits de animaci\u00f3n de jugador)
+- NStgData (modelos 3D)
+- NStgeData (modelos 3D de efectos)
 
+**En futuras actualizaciones se a\u00f1adir\u00e1n m\u00e1s archivos.**
 
-**Other files will be added in future updates.**
+### Archivos no soportados
 
-
-## Unsupported archives ##
-
-- NStuData (Map configs)
-- NSeffData (VFX configs)
+- NStuData (configuraci\u00f3n de mapas)
+- NSeffData (configuraci\u00f3n de efectos)
 - NStsData
 - NStkData
 - NSemData
@@ -41,26 +52,3 @@ Client Modding Discord:  [<img src="https://discordapp.com/api/guilds/5909587603
 - NSedData
 - NSgrdData
 - NSpmData
-
-
-## License ##
-
-Our project is based on **Boost Software License**:
-> [LICENSE](/LICENSE)
-
-
-## Installation ##
-
-**Download** a **[release](https://github.com/Pumbaa98/OnexExplorer/releases)** or:
-
-1. Compile given sourcecode using Qt 5.5+ and OpenGl (freeglut)
-2. Move required Qt DLL's to EXE's location
-3. Run the program
-
-The experimental branch and releases flaged with **pre-release** are in development and don't guarantee that everything works as expected. 
-**If you have any problems please try to compile the master branch or use regular releases!**
-
-
-## Report Bugs and suggest features ##
-If you have any **problems** with OnexExplorer or want to suggest new **features** feel free to open **[issues](https://github.com/Pumbaa98/OnexExplorer/issues)**.
-Please dont forget to mention the **version** you're using.
