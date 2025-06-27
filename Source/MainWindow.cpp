@@ -221,7 +221,7 @@ void MainWindow::on_actionApplyPatch_triggered() {
         if (!item)
             continue;
         while (item->hasParent())
-            item = static_cast<OnexTreeItem *>(item->parent());
+            item = static_cast<OnexTreeItem *>(item->QTreeWidgetItem::parent());
         if (!roots.contains(item))
             roots.append(item);
     }
@@ -267,11 +267,11 @@ void MainWindow::filterItems() {
     for (const QString &searched : searchList) {
         QList<QTreeWidgetItem *> matches = ui->treeWidget->findItems(searched, (exactSearch ? Qt::MatchExactly : Qt::MatchContains) | Qt::MatchRecursive);
         for (QTreeWidgetItem *m : matches) {
-            if (m->parent() && m->parent()->isHidden()) {
-                m->parent()->setHidden(false);
-                if (m->parent()->parent()) {
-                    for (int i = 0; i < m->parent()->childCount(); i++)
-                        m->parent()->child(i)->setHidden(true);
+            if (m->QTreeWidgetItem::parent() && m->QTreeWidgetItem::parent()->isHidden()) {
+                m->QTreeWidgetItem::parent()->setHidden(false);
+                if (m->QTreeWidgetItem::parent()->QTreeWidgetItem::parent()) {
+                    for (int i = 0; i < m->QTreeWidgetItem::parent()->childCount(); i++)
+                        m->QTreeWidgetItem::parent()->child(i)->setHidden(true);
                 }
             }
             m->setHidden(false);
@@ -353,10 +353,10 @@ void MainWindow::on_actionClose_selected_triggered() {
     int topItems = ui->treeWidget->topLevelItemCount();
     QTreeWidgetItem *next = ui->treeWidget->itemBelow(selectedItems.last());
     for (auto &item : selectedItems) {
-        if (item->parent() != nullptr && item->parent()->childCount() == 1 && !selectedItems.contains(item->parent())) {
-            item = item->parent();
+        if (item->QTreeWidgetItem::parent() != nullptr && item->QTreeWidgetItem::parent()->childCount() == 1 && !selectedItems.contains(item->QTreeWidgetItem::parent())) {
+            item = item->QTreeWidgetItem::parent();
         }
-        if (item->parent())
+        if (item->QTreeWidgetItem::parent())
             delete item;
         else {
             QMessageBox::StandardButton message = QMessageBox::question(this, "", "Close .NOS Archive?",
