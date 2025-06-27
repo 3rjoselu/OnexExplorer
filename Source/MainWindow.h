@@ -36,6 +36,7 @@ public slots:
     void on_actionExport_with_config_triggered();
     void on_actionImport_from_config_triggered();
     void on_actionApplyPatch_triggered();
+    void on_actionSaveAllNos_triggered();
     void on_addButton_clicked();
     void on_deleteButton_clicked();
     void filterItems();

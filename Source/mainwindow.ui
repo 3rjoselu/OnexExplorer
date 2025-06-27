@@ -207,6 +207,7 @@
                 <addaction name="actionExport_with_config"/>
                 <addaction name="actionImport_from_config"/>
                 <addaction name="actionApplyPatch"/>
+                <addaction name="actionSaveAllNos"/>
                 <addaction name="separator"/>
                 <addaction name="actionRename"/>
             </widget>
@@ -369,6 +370,14 @@
             </property>
             <property name="toolTip">
                 <string>Load items that should be added or replaced from a config file</string>
+            </property>
+        </action>
+        <action name="actionSaveAllNos">
+            <property name="text">
+                <string>[3rJoselu] Save all .NOS</string>
+            </property>
+            <property name="toolTip">
+                <string>Save every open .NOS archive</string>
             </property>
         </action>
     </widget>

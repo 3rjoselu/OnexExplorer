@@ -3,6 +3,8 @@
 #include "Ui/TreeItems/OnexNSmpData.h"
 #include <QScrollArea>
 #include <QJsonDocument>
+#include <QFileInfo>
+#include <QDir>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
@@ -164,6 +166,19 @@ void MainWindow::on_actionSave_as_triggered() {
     }
 }
 
+void MainWindow::on_actionSaveAllNos_triggered() {
+    for (int i = 0; i < ui->treeWidget->topLevelItemCount(); ++i) {
+        auto *root = static_cast<OnexTreeItem *>(ui->treeWidget->topLevelItem(i));
+        QString path = root->data(0, Qt::UserRole).toString();
+        if (path.isEmpty())
+            path = getSaveFile(settings->getSavePath() + root->getName(), "NOS Archive (*.NOS)");
+        if (path.isEmpty())
+            continue;
+        root->onExportAsOriginal(path);
+        root->setData(0, Qt::UserRole, path);
+    }
+}
+
 void MainWindow::on_actionExport_with_config_triggered() {
     OnexTreeItem *root = getTreeRoot();
     if (root != nullptr) {
@@ -199,17 +214,46 @@ void MainWindow::on_actionImport_from_config_triggered() {
 }
 
 void MainWindow::on_actionApplyPatch_triggered() {
-    if (ui->treeWidget->currentItem()) {
+    QList<QTreeWidgetItem *> selectedItems = ui->treeWidget->selectedItems();
+    QList<OnexTreeItem *> roots;
+    for (auto *s : selectedItems) {
+        auto *item = dynamic_cast<OnexTreeItem *>(s);
+        if (!item)
+            continue;
+        while (item->hasParent())
+            item = static_cast<OnexTreeItem *>(item->parent());
+        if (!roots.contains(item))
+            roots.append(item);
+    }
+
+    if (roots.isEmpty()) {
+        QMessageBox::information(nullptr, tr("Info"), tr("Select .NOS file first"));
+        return;
+    }
+
+    QStringList jsonPaths;
+    if (roots.size() == 1) {
         QString path = getOpenFile(settings->getReplacePath(), "JSON File (*.json)");
         if (path.isEmpty())
             return;
-        QFile file(path);
-        if (!file.open(QIODevice::ReadOnly))
-            return;
-        jsonOpener.load(getTreeRoot(), file, neatPath(path));
+        jsonPaths << path;
     } else {
-        QMessageBox::information(nullptr, tr("Info"), tr("Select .NOS file first"));
+        jsonPaths = getOpenFiles(settings->getReplacePath(), "JSON File (*.json)");
+        if (jsonPaths.size() != roots.size()) {
+            QMessageBox::information(nullptr, tr("Info"),
+                                     tr("Please select %1 JSON file(s).").arg(roots.size()));
+            return;
+        }
     }
+
+    for (int i = 0; i < roots.size(); ++i) {
+        QFile file(jsonPaths[i]);
+        if (!file.open(QIODevice::ReadOnly))
+            continue;
+        jsonOpener.load(roots[i], file, neatPath(jsonPaths[i]));
+        file.close();
+    }
+
     ui->treeWidget->sortItems(0, Qt::AscendingOrder);
 }
 
@@ -493,5 +537,6 @@ OnexTreeItem *MainWindow::getTreeRoot() {
 }
 
 QString MainWindow::neatPath(QString path) {
-    return path.mid(0, path.lastIndexOf("/") + 1);
+    QFileInfo info(path);
+    return info.absolutePath() + QDir::separator();
 }

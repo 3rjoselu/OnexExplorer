@@ -52,3 +52,8 @@ OnexExplorer es una herramienta de c\u00f3digo abierto para desempaquetar y volv
 - NSedData
 - NSgrdData
 - NSpmData
+
+## Notas
+
+- Al importar parches JSON la ruta de cada archivo se determina desde la ubicación real del JSON, por lo que funciona igual en Windows o Linux.
+- Puedes aplicar varios parches a diferentes archivos `.NOS` de forma simultánea eligiendo varios JSON y usar la opción **[3rJoselu] Save all .NOS** para guardar todos los archivos abiertos de una sola vez.
