@@ -17,6 +17,7 @@ OnexExplorer es una herramienta de c\u00f3digo abierto para desempaquetar y volv
 - Previsualizar textos, im\u00e1genes y modelos 3D.
 - Extraer archivos o carpetas completas.
 - Reemplazar contenido existente y a\u00f1adir nuevos recursos.
+- Todas las rutas devueltas respetan el separador del sistema.
 
 ## Archivos soportados actualmente
 
