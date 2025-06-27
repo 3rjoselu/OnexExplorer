@@ -59,3 +59,4 @@ OnexExplorer es una herramienta de código abierto para desempaquetar y volver a
 - Todas las rutas devueltas respetan el separador del sistema.
 - Puedes aplicar varios parches a diferentes archivos `.NOS` de forma simultánea eligiendo varios JSON y usar la opción **[3rJoselu] Save all .NOS** para guardar todos los archivos abiertos de una sola vez.
 - Se eliminaron los botones de invitaci\u00f3n a Discord y Ko-fi para una interfaz m\u00e1s limpia.
+- La lista de archivos en el árbol ahora se ordena de forma natural para que elementos como `31439_2` aparezcan en el orden correcto.
