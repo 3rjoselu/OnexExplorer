@@ -221,7 +221,7 @@ void MainWindow::on_actionApplyPatch_triggered() {
         if (!item)
             continue;
         while (item->hasParent())
-            item = static_cast<OnexTreeItem *>(item->parent());
+            item = static_cast<OnexTreeItem *>(item->QTreeWidgetItem::parent());
         if (!roots.contains(item))
             roots.append(item);
     }
@@ -487,7 +487,7 @@ QString MainWindow::getSelectedDirectory(const QString &suggestion) {
     QString dir = QFileDialog::getExistingDirectory(nullptr, tr("Select Directory"), suggestion);
     if (dir.isEmpty())
         return dir;
-    return dir + "/";
+    return dir + QDir::separator();
 }
 
 QString MainWindow::getOpenFile(const QString &suggestion, const QString &filter) {
