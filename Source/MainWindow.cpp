@@ -487,7 +487,7 @@ QString MainWindow::getSelectedDirectory(const QString &suggestion) {
     QString dir = QFileDialog::getExistingDirectory(nullptr, tr("Select Directory"), suggestion);
     if (dir.isEmpty())
         return dir;
-    return dir + "/";
+    return dir + QDir::separator();
 }
 
 QString MainWindow::getOpenFile(const QString &suggestion, const QString &filter) {
