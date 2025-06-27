@@ -9,7 +9,7 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
     this->setAcceptDrops(true);
-    this->setWindowTitle(QString("OnexExplorer %1 [Beta]").arg(VERSION));
+    this->setWindowTitle(QString("OnexExplorer %1 [3rJoselu Edition]").arg(VERSION));
     settings = new Settings();
     ui->treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem * , int)), this,
