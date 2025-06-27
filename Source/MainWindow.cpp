@@ -221,7 +221,7 @@ void MainWindow::on_actionApplyPatch_triggered() {
         if (!item)
             continue;
         while (item->hasParent())
-            item = static_cast<OnexTreeItem *>(item->parent());
+            item = static_cast<OnexTreeItem *>(item->QTreeWidgetItem::parent());
         if (!roots.contains(item))
             roots.append(item);
     }
