@@ -110,9 +110,7 @@ RESOURCES += \
 
 RC_ICONS = ./resources/oxe_icon_trans.ico
 
-
-win32: INCLUDEPATH += $$PWD/freeglut/include/GL
-else:unix: /usr/include/GL/
-
-win32: LIBS += -L$$PWD/freeglut/lib -lfreeglut
-else:unix: LIBS += -lglut -lGLU -lGL
+# --- FreeGLUT integration ---
+INCLUDEPATH += C:/freeglut/include
+INCLUDEPATH += C:/freeglut/include/GL
+LIBS        += -LC:/freeglut/lib/x64 -lfreeglut -lopengl32 -lglu32
