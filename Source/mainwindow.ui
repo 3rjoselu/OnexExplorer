@@ -195,9 +195,6 @@
             <property name="text">
                 <string>Save as...</string>
             </property>
-            <property name="shortcut">
-                <string>Ctrl+S</string>
-            </property>
         </action>
         <action name="actionClose_selected">
             <property name="text">
@@ -339,10 +336,13 @@
         </action>
         <action name="actionSaveAllNos">
             <property name="text">
-                <string>[3rJoselu] Save all .NOS</string>
+                <string>[3rJoselu] Save all .NOS (CTRL+S)</string>
             </property>
             <property name="toolTip">
                 <string>Save every open .NOS archive</string>
+            </property>
+            <property name="shortcut">
+                <string>Ctrl+S</string>
             </property>
         </action>
     </widget>

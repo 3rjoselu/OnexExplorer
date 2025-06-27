@@ -57,6 +57,7 @@ OnexExplorer es una herramienta de código abierto para desempaquetar y volver a
 
 - Al importar parches JSON la ruta de cada archivo se determina desde la ubicación real del JSON, por lo que funciona igual en Windows o Linux.
 - Todas las rutas devueltas respetan el separador del sistema.
-- Puedes aplicar varios parches a diferentes archivos `.NOS` de forma simultánea eligiendo varios JSON y usar la opción **[3rJoselu] Save all .NOS** para guardar todos los archivos abiertos de una sola vez.
+- Puedes aplicar varios parches a diferentes archivos `.NOS` de forma simultánea eligiendo varios JSON y usar la opción **[3rJoselu] Save all .NOS (CTRL+S)** para guardar todos los archivos abiertos de una sola vez.
 - Se eliminaron los botones de invitaci\u00f3n a Discord y Ko-fi para una interfaz m\u00e1s limpia.
 - La lista de archivos en el árbol ahora se ordena de forma natural para que elementos como `31439_2` aparezcan en el orden correcto.
+- La combinación **CTRL+S** ahora ejecuta el guardado masivo de todos los archivos abiertos.
