@@ -6,7 +6,7 @@
 
 Settings::Settings(QWidget *parent) : QDialog(parent), ui(new Ui::Settings) {
     ui->setupUi(this);
-    settingsPath = QApplication::applicationDirPath().left(1) + ":/Settings.ini";
+    settingsPath = QApplication::applicationDirPath() + "/Settings.ini";
     load();
 }
 

@@ -2,6 +2,49 @@
 
 OnexExplorer es una herramienta de código abierto para desempaquetar y volver a empaquetar archivos `.NOS` del juego NosTale. Permite abrir la mayoría de estos archivos, ver su contenido y exportarlo o reemplazarlo según sea necesario.
 
+## Compilación
+
+### Requisitos previos
+
+- **Qt 5.15.2** o **Qt 6.9.1** con el kit **MinGW 64-bit** (instalable desde [qt.io](https://www.qt.io/download-qt-installer))
+- **FreeGLUT** (necesario para la previsualización de modelos 3D)
+  - Descargar desde [freeglut.sourceforge.net](https://freeglut.sourceforge.net/) o [transmissionzero.co.uk](https://www.transmissionzero.co.uk/software/freeglut-devel/)
+  - Extraer de forma que quede `C:/freeglut/include/` y `C:/freeglut/lib/x64/` (la ruta está fija en el proyecto)
+
+### Con Qt Creator (recomendado)
+
+1. Abrir **Qt Creator** e ir a `File > Open File or Project...`
+2. Seleccionar `OnexExplorer.pro`
+3. Elegir el kit **Desktop Qt 5.15.2 MinGW 64-bit** (o 6.9.1 si está disponible)
+4. Para compilar en **Release**: en la barra lateral izquierda, hacer clic en el icono del monitor y cambiar de *Debug* a *Release*
+5. Pulsar **Build** (Ctrl+B) o el botón de play sin depuración (Ctrl+R)
+
+El ejecutable se genera en:
+```
+build/Desktop_Qt_5_15_2_MinGW_64_bit-Release/release/OnexExplorer.exe
+```
+
+### Despliegue (ejecutar fuera de Qt Creator)
+
+Para distribuir el `.exe` o ejecutarlo en una máquina sin Qt instalado, hay que copiar las DLLs de Qt junto al ejecutable usando `windeployqt`:
+
+```bash
+cd build/Desktop_Qt_5_15_2_MinGW_64_bit-Release/release/
+windeployqt OnexExplorer.exe
+```
+
+Esto copia automáticamente las DLLs necesarias de Qt y MinGW. Además hay que copiar manualmente `freeglut.dll` (de `C:/freeglut/bin/x64/`) junto al ejecutable.
+
+### Por línea de comandos (qmake)
+
+```bash
+cd C:\Users\Usuario\Documents\OnexExplorer
+qmake OnexExplorer.pro CONFIG+=release
+mingw32-make -j4
+```
+
+---
+
 ## Estructura del proyecto
 
 - **Source/Converters**: conversores para modelos, imágenes y datos.

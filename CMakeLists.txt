@@ -15,9 +15,9 @@ find_package(Qt5Core REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Gui REQUIRED)
 
-set(GLUT_LIBRARY_DIR "freeglut/lib")
-set(GLUT_INCLUDE_DIR "freeglut/include/GL")
-find_package(GLUT REQUIRED)
+set(FREEGLUT_ROOT "C:/freeglut")
+set(GLUT_INCLUDE_DIR "${FREEGLUT_ROOT}/include/GL")
+set(GLUT_LIBRARIES "${FREEGLUT_ROOT}/lib/libfreeglut.dll.a")
 include_directories(${GLUT_INCLUDE_DIR})
 
 set(SOURCES
@@ -117,4 +117,23 @@ add_executable(OnexExplorer WIN32 ${SOURCES} ${MOC_SRCS} ${RES_SOURCES} ${UI_HEA
 target_link_libraries(OnexExplorer Qt5::Core)
 target_link_libraries(OnexExplorer Qt5::Widgets)
 target_link_libraries(OnexExplorer Qt5::Gui)
-target_link_libraries(OnexExplorer ${GLUT_LIBRARIES})
+target_link_libraries(OnexExplorer ${GLUT_LIBRARIES} opengl32 glu32)
+
+# post-build: deploy Qt DLLs and copy freeglut
+get_target_property(QMAKE_EXE Qt5::qmake IMPORTED_LOCATION)
+get_filename_component(QT_BIN_DIR "${QMAKE_EXE}" DIRECTORY)
+find_program(WINDEPLOYQT windeployqt HINTS "${QT_BIN_DIR}")
+
+if(WINDEPLOYQT)
+    add_custom_command(TARGET OnexExplorer POST_BUILD
+        COMMAND "${WINDEPLOYQT}" $<TARGET_FILE:OnexExplorer>
+        COMMENT "Deploying Qt DLLs..."
+    )
+endif()
+
+add_custom_command(TARGET OnexExplorer POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${FREEGLUT_ROOT}/bin/libfreeglut.dll"
+        $<TARGET_FILE_DIR:OnexExplorer>
+    COMMENT "Copying freeglut.dll..."
+)
